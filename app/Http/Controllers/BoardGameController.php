@@ -23,20 +23,30 @@ class BoardGameController extends Controller
     // Store a newly created resource in storage.
     public function store(Request $request)
     {
-    
+        // Validate the request
         $validator = Validator::make($request->all(), $this->validationRules());
     
         if ($validator->fails()) {
             return redirect()->route('boardgames.add')->withErrors($validator)->withInput();
         }
     
+        // Create a unique filename for the uploaded file
+        $filename = time() . '_' . $request->file('image')->getClientOriginalName();
+    
+        // Move the uploaded file to the destination directory
+        $request->file('image')->move(public_path('/uploads'), $filename);
+    
+        // Now you can use $filename to store the file name in your database or perform other actions
+    
         $boardGame = BoardGame::create($request->all());
-        $this->handleImage($request, $boardGame);
+        $boardGame->image = $filename; // Store the filename in the database
+        $boardGame->save();
     
         // Redirect back to the form view with a success message
         return redirect()->route('boardgames.add')->with('success', 'Board game added successfully');
-
     }
+
+    
     // Display the specified resource.
     public function show($id)
     {

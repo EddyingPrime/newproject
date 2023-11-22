@@ -112,7 +112,7 @@
         <textarea name="description" required>{{ old('description') }}</textarea>
 
         <label for="image">Image:</label>
-        <input type="file" name="image" accept="image/*" required>
+        <input type="file" name="image" accept="image/jpg" required>
 
         <label for="min_players">Min Players:</label>
         <input type="number" name="min_players" value="{{ old('min_players') }}" required>
