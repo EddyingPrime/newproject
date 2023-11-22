@@ -6,41 +6,43 @@
     <title>Add Board Game</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            font-family: 'Arial', sans-serif;
+            background-color: #f7f7f7;
             margin: 0;
             padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            height: auto;
         }
 
-        form {
+        div {
             background-color: #fff;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             max-width: 400px;
-            width: 100%;
+            width: auto;
+            text-align: center;
         }
 
         h1 {
-            text-align: center;
             color: #333;
         }
 
         label {
             display: block;
-            margin-bottom: 8px;
-            color: #333;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            color: #555;
         }
 
         input,
-        textarea {
+        textarea,
+        select {
             width: 100%;
             padding: 8px;
-            margin-bottom: 16px;
+            margin-bottom: 15px;
             box-sizing: border-box;
             border: 1px solid #ccc;
             border-radius: 4px;
@@ -61,23 +63,14 @@
             background-color: #45a049;
         }
 
-        select {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 16px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+        .success-message {
+            color: green;
+            margin-top: 10px;
         }
 
         .error-message {
             color: red;
-            margin-top: 8px;
-        }
-
-        .success-message {
-            color: green;
-            margin-top: 8px;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -102,7 +95,14 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('boardgames.add') }}" enctype="multipart/form-data">
+    @if (Request::is('*/edit'))
+    <!-- Update form action for editing -->
+    <form method="GET" action="{{ route('boardgames.add') }}" enctype="multipart/form-data">
+@else
+    <!-- Default form action for creating -->
+    <form method="POST" action="{{ route('boardgames.store') }}" enctype="multipart/form-data">
+@endif
+
         @csrf
 
         <label for="name">Name:</label>
@@ -135,13 +135,9 @@
         <label for="publisher">Publisher:</label>
         <input type="text" name="publisher" value="{{ old('publisher') }}" required>
 
-        <label for="categories">Categories:</label>
-        <select name="categories[]" multiple required>
-            @foreach($categories as $category)
-                <option value="{{ $category->id }}">{{ $category->name }}</option>
-            @endforeach
-        </select>
+        <button type="submit">Add Board Game</button>
+    </form>
+</div>
 
-        <label for="mechanics">Mechanics:</label>
-        <select name="mechanics[]" multiple required>
-            @foreach
+</body>
+</html>

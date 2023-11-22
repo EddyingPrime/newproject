@@ -14,12 +14,10 @@ use App\Http\Controllers\BoardGameController;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
+Route::get('/boardgames/add', function () {
+    return view('/boardgames/add');
 });
 
 
-
-Route::post('/boardgames/add', function () {
-    return view('boardgamesadd');
-})->name('boardgames.add');
+Route::get('/boardgames/add', [BoardGameController::class, 'create'])->name('boardgames.add');
+Route::post('/boardgames', [BoardGameController::class, 'store'])->name('boardgames.store');

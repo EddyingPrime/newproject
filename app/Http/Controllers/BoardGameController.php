@@ -15,33 +15,28 @@ class BoardGameController extends Controller
         return response()->json(['data' => $boardGames]);
     }
 
+    public function create()
+    {
+        return view('boardgamesadd');
+    }
+
     // Store a newly created resource in storage.
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|max:255',
-            'description' => 'required',
-            'image' => 'required|image|max:2048',
-            'min_players' => 'required|integer',
-            'max_players' => 'required|integer',
-            'min_playtime' => 'required|integer',
-            'max_playtime' => 'required|integer',
-            'year_published' => 'required|integer',
-            'designer' => 'required|string|max:255',
-            'publisher' => 'required|string|max:255',
-        ]);
-
+    
+        $validator = Validator::make($request->all(), $this->validationRules());
+    
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return redirect()->route('boardgames.add')->withErrors($validator)->withInput();
         }
+    
+        $boardGame = BoardGame::create($request->all());
+        $this->handleImage($request, $boardGame);
+    
+        // Redirect back to the form view with a success message
+        return redirect()->route('boardgames.add')->with('success', 'Board game added successfully');
 
-        $boardGame = new BoardGame($request->all());
-        $boardGame->image = $request->file('image')->store('board-games');
-        $boardGame->save();
-
-        return response()->json(['data' => $boardGame], 201);
     }
-
     // Display the specified resource.
     public function show($id)
     {
@@ -53,8 +48,29 @@ class BoardGameController extends Controller
     public function update(Request $request, $id)
     {
         $boardGame = BoardGame::findOrFail($id);
+    
+        $validator = Validator::make($request->all(), $this->validationRules());
+    
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+    
+        $boardGame->update($request->all());
+        $this->handleImage($request, $boardGame);
+    
+        // Respond with JSON data after successful update
+        return response()->json(['data' => $boardGame], 200);
+    }
+    // Remove the specified resource from storage.
+    public function destroy($id)
+    {
+        BoardGame::findOrFail($id)->delete();
+        return response()->json(['message' => 'Board game deleted successfully'], 204);
+    }
 
-        $validator = Validator::make($request->all(), [
+    private function validationRules()
+    {
+        return [
             'name' => 'required|max:255',
             'description' => 'required',
             'image' => 'nullable|image|max:2048',
@@ -65,25 +81,14 @@ class BoardGameController extends Controller
             'year_published' => 'required|integer',
             'designer' => 'required|string|max:255',
             'publisher' => 'required|string|max:255',
-        ]);
+        ];
+    }
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
+    private function handleImage(Request $request, BoardGame $boardGame)
+    {
         if ($request->hasFile('image')) {
             $boardGame->image = $request->file('image')->store('board-games');
         }
-
-        $boardGame->update($request->all());
-
-        return response()->json(['data' => $boardGame], 200);
-    }
-
-    // Remove the specified resource from storage.
-    public function destroy($id)
-    {
-        BoardGame::findOrFail($id)->delete();
-        return response()->json(['message' => 'Board game deleted successfully'], 204);
     }
 }
+
