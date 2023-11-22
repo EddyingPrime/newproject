@@ -79,22 +79,29 @@ class AuthController extends Controller
     {
         try {
             $user = Auth::user();
-
-            // You can customize the data you want to return, including profile image data
+    
+            if (!$user) {
+                return response()->json(['error' => 'User not found'], 404);
+            }
+    
             $userData = [
+                'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
                 'profile_image' => $user->profile_image, // Replace with your actual profile picture attribute name
                 // Add other fields as needed
             ];
-
-            return response()->json(['user' => $userData], 200);
+    
+            return response()->json(['success' => true, 'user' => $userData], 200);
         } catch (\Exception $e) {
+            // Log the error for debugging purposes
+            \Log::error('Error fetching user profile: ' . $e->getMessage());
+    
             return response()->json(['error' => 'Error fetching user profile.'], 500);
         }
     }
-
-          /**
+    
+    /**
      * Update the authenticated user's profile.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -104,20 +111,31 @@ class AuthController extends Controller
     {
         try {
             $user = Auth::user();
-            
+    
+            $validator = Validator::make($request->all(), [
+                'name' => 'required|string|max:255',
+                'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+                'profilePicture' => 'image|mimes:jpeg,png,jpg,gif|max:2048', // Adjust the validation rules for the profile picture
+            ]);
+    
+            if ($validator->fails()) {
+                return response()->json(['error' => $validator->errors()], 422);
+            }
+    
             $user->name = $request->input('name');
             $user->email = $request->input('email');
-
+    
             if ($request->hasFile('profilePicture')) {
                 $profilePicturePath = $request->file('profilePicture')->store('profile_pictures', 'public');
                 $user->profile_image = $profilePicturePath; // Update the attribute name accordingly
             }
-
+    
             $user->save();
-
+    
             return response()->json(['success' => true, 'user' => $user]);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Error updating user profile.'], 500);
         }
+    
     }
 }
